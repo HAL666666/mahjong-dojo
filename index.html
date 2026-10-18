@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>点数道場</title>
+<meta name="theme-color" content="#0D342D">
+<meta name="description" content="符の計算から学ぶ麻雀の点数計算道場">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="点数道場">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="bar">
+  <button id="back" class="icon-btn" aria-label="ホームへ戻る" hidden>‹ ホーム</button>
+  <h1 id="title">点数道場</h1>
+</header>
+<main>
+  <section id="v-home" class="view">
+    <div class="brand"><div id="logo"></div><p>符の計算から、点数を自分で説明できるように。</p></div>
+    <nav class="modes">
+      <a href="#lessons" class="mode"><span class="mi">符</span><span><b>符の学習</b><small>副底20から一歩ずつ</small></span><em id="lesson-progress"></em></a>
+      <a href="#quiz" class="mode"><span class="mi">点</span><span><b>点数クイズ</b><small>翻・符・点数を当てる</small></span><em id="quiz-progress"></em></a>
+      <a href="#lab" class="mode"><span class="mi">研</span><span><b>点数研究室</b><small>牌を入れ替えて再計算</small></span></a>
+      <div class="mode disabled"><span class="mi">流</span><span><b>牌の流れと確率</b><small>受け入れ枚数・確率の理論</small></span><em class="soon">準備中</em></div>
+    </nav>
+    <p class="fine">右下の「早見表」「ヒント」はどの画面からでも開けます。オフラインでも動きます。</p>
+  </section>
+
+  <section id="v-lessons" class="view" hidden>
+    <div class="steps" id="lesson-steps"></div>
+    <article class="card" id="lesson-card"></article>
+    <div class="row between"><button class="btn" id="lesson-prev">‹ 前へ</button><button class="btn primary" id="lesson-next">次へ ›</button></div>
+  </section>
+
+  <section id="v-quiz" class="view" hidden>
+    <div class="row between small"><span id="quiz-count"></span><span id="quiz-score"></span></div>
+    <article class="card">
+      <div class="row between"><h2 id="quiz-title"></h2><span class="tag" id="quiz-diff"></span></div>
+      <div class="hand" id="quiz-hand"></div>
+      <p class="cond" id="quiz-cond"></p>
+      <p class="yaku" id="quiz-yaku"></p>
+    </article>
+    <article class="card answer">
+      <div class="fields">
+        <label>翻<select id="ans-han"></select></label>
+        <label>符<select id="ans-fu"></select></label>
+      </div>
+      <p class="lbl">点数</p>
+      <div class="choices" id="ans-pay"></div>
+      <div class="row"><button class="btn primary wide" id="quiz-check">答え合わせ</button></div>
+    </article>
+    <article class="card result" id="quiz-result" hidden></article>
+    <div class="row between"><button class="btn" id="quiz-prev">‹ 前の問題</button><button class="btn primary" id="quiz-next">次の問題 ›</button></div>
+  </section>
+
+  <section id="v-lab" class="view" hidden>
+    <p class="notice">⚠ 役は自動判定しません。翻（役＋ドラ）は自分で設定してください。符と点数は牌姿から自動計算します。</p>
+    <article class="card">
+      <div class="row between"><h2>手牌 <small id="lab-count"></small></h2><div class="row gap"><button class="btn sm" id="lab-preset">例を入れる</button><button class="btn sm" id="lab-clear">クリア</button></div></div>
+      <div class="hand lab-hand" id="lab-hand"></div>
+      <p class="fine" id="lab-handhelp">牌をタップ → 和了牌に指定／外す。下の一覧から追加（各牌4枚まで）。</p>
+      <div class="row gap" id="lab-tileacts" hidden><button class="btn sm primary" id="lab-setwin">和了牌にする</button><button class="btn sm" id="lab-remove">この牌を外す</button></div>
+    </article>
+    <details class="card picker-card" open><summary>牌を追加</summary><div class="picker" id="lab-picker"></div></details>
+    <article class="card settings" id="lab-settings"></article>
+    <article class="card result" id="lab-result"></article>
+  </section>
+
+  <section id="v-flow" class="view" hidden>
+    <article class="card"><h2>牌の流れと確率（準備中）</h2><p>固定の教材牌譜を一手ずつ進め、受け入れ枚数と「見えている牌」から確率の目安を計算するモードを次の版で追加します。</p><p class="fine">相手の伏せ牌は見えないため、表示する確率は可視情報に基づく目安です。</p></article>
+  </section>
+</main>
+
+<div class="fabs">
+  <button class="fab" id="fab-table">早見表</button>
+  <button class="fab gold" id="fab-hint">ヒント</button>
+</div>
+
+<div class="modal" id="m-table" hidden role="dialog" aria-label="符の早見表">
+  <div class="sheet">
+    <div class="row between"><h2>点数早見表</h2><button class="icon-btn close" data-close>×</button></div>
+    <div class="seg" id="table-seg"><button data-v="child" class="on">子</button><button data-v="dealer">親</button></div>
+    <div class="table-wrap" id="table-body"></div>
+  </div>
+</div>
+<div class="modal" id="m-hint" hidden role="dialog" aria-label="ヒント">
+  <div class="sheet">
+    <div class="row between"><h2>ヒント</h2><button class="icon-btn close" data-close>×</button></div>
+    <div id="hint-body"></div>
+  </div>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/questions.js"></script>
+<script src="js/lessons.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
