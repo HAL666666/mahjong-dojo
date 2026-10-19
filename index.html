@@ -28,6 +28,7 @@
       <a href="#lessons" class="mode"><span class="mi">符</span><span><b>符の学習</b><small>副底20から一歩ずつ</small></span><em id="lesson-progress"></em></a>
       <a href="#quiz" class="mode"><span class="mi">点</span><span><b>点数クイズ</b><small>翻・符・点数を当てる</small></span><em id="quiz-progress"></em></a>
       <a href="#lab" class="mode"><span class="mi">研</span><span><b>点数研究室</b><small>牌を入れ替えて再計算</small></span></a>
+      <a href="#game" class="mode"><span class="mi">戦</span><span><b>対局（東風戦・お試し版）</b><small>CPU 3人と打つ・鳴きなし</small></span></a>
       <a href="#rules" class="mode"><span class="mi">礼</span><span><b>ルールとマナー</b><small>席決め・配牌の取り方・手積み・作法</small></span></a>
       <div class="mode disabled"><span class="mi">流</span><span><b>牌の流れと確率</b><small>受け入れ枚数・確率の理論</small></span><em class="soon">準備中</em></div>
       <a href="#settings" class="mode slim"><span class="mi">⚙</span><span><b>設定</b><small>牌の絵柄・大きさ</small></span></a>
@@ -63,7 +64,7 @@
   </section>
 
   <section id="v-lab" class="view" hidden>
-    <p class="notice">⚠ 役は自動判定しません。翻（役＋ドラ）は自分で設定してください。符と点数は牌姿から自動計算します。</p>
+    <p class="notice" id="lab-notice">⚠ 役は自動判定しません。翻（役＋ドラ）は自分で設定してください。符と点数は牌姿から自動計算します。</p>
     <article class="card">
       <div class="row between"><h2>手牌 <small id="lab-count"></small></h2><div class="row gap"><button class="btn sm" id="lab-preset">例を入れる</button><button class="btn sm" id="lab-clear">クリア</button></div></div>
       <div class="hand lab-hand" id="lab-hand"></div>
@@ -75,6 +76,7 @@
     <article class="card result" id="lab-result"></article>
   </section>
 
+ <section id="v-game" class="view" hidden><div id="game-body"></div></section>
   <section id="v-rules" class="view" hidden><div id="rules-body"></div></section>
   <section id="v-settings" class="view" hidden><article class="card" id="settings-body"></article></section>
 
@@ -109,6 +111,9 @@
 <script src="js/engine.js"></script>
 <script src="js/questions.js"></script>
 <script src="js/lessons.js"></script>
+<script src="js/yaku.js"></script>
+<script src="js/game-core.js"></script>
+<script src="js/game-ui.js"></script>
 <script src="js/rules.js"></script>
 <script src="js/app.js"></script>
 </body>

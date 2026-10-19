@@ -63,7 +63,7 @@
     var river = ['1z', '9m', '2z', '1p', '8s', '7z', '3p', '9s', '4z', '2m', '5z', '6p', '1s', '7m'];
     var h = '<div class="rules">';
     h += '<article class="card"><p>家族や友人と卓を囲むときの、準備の手順とマナーです。細かい部分はグループのルール（ローカルルール）が優先です。</p>' +
-      '<div class="toc"><a href="#r-auto" data-jump>全自動卓</a><a href="#r-hand" data-jump>手積み</a><a href="#r-manner" data-jump>マナー</a></div></article>';
+      '<div class="toc"><a href="#r-auto" data-jump>全自動卓</a><a href="#r-hand" data-jump>手積み</a><a href="#r-manner" data-jump>マナー</a><a href="#r-fair" data-jump>対局の公平性</a></div></article>';
 
     h += '<article class="card" id="r-auto"><h2>全自動卓での始め方</h2>' +
       '<h3>1. 席決め（場決め）</h3><ol><li>東・南・西・北の4枚を裏向きに混ぜ、1人1枚ずつ引きます。</li>' +
@@ -107,6 +107,11 @@
       '<li><b>長考しすぎない</b>：迷っても手早く。初心者同士なら「ちょっと考えます」と一言でOK。</li>' +
       '<li><b>口三味線しない</b>：「全然テンパイしてない」など、相手を惑わす発言をしない。</li>' +
       '<li><b>卓上で飲食しない</b>：飲み物はサイドテーブルへ。牌や卓を汚さない。</li></ul></article>';
+    h += '<article class="card" id="r-fair"><h2>このアプリの対局の公平性</h2><ul>' +
+      '<li>牌山は各局の開始時に、暗号論的乱数（crypto.getRandomValues）を使った Fisher–Yates 法で<b>一度だけ</b>シャッフルします。</li>' +
+      '<li>配牌やツモの重み付け、あなたの手牌を見た後の牌山の入れ替えなどの<b>操作は一切ありません</b>。</li>' +
+      '<li>CPU は自分の手牌と公開情報（全員の河・リーチ宣言・ドラ表示牌・残り枚数）だけで判断し、あなたの手牌や山の中身は見ません。</li>' +
+      '<li>そのため、偏った配牌や連続した不運も普通に起こります。</li></ul></article>';
     return h + '</div>';
   };
 })(this);

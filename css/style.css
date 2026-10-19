@@ -122,3 +122,31 @@ select{font:inherit;font-size:1rem;padding:8px;border-radius:8px;border:1px soli
 .qt td.mg{background:rgba(216,182,91,.2)}
 #hint-body p,#hint-body li{line-height:1.7;font-size:.92rem}
 @media (prefers-reduced-motion:no-preference){.tile.sel{transition:transform .12s}}
+/* game */
+.ginfo{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:.8rem;background:rgba(0,0,0,.25);border-radius:10px;padding:6px 8px}
+.ginfo .dora{display:inline-flex;align-items:center;gap:4px}.ginfo .dora .tile{--w:20px;margin:0}
+.cpus{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px 0}
+.cpu{background:rgba(255,247,232,.05);border:1px solid rgba(216,182,91,.2);border-radius:10px;padding:4px;min-width:0}
+.ph{display:flex;flex-wrap:wrap;align-items:center;gap:3px;font-size:.72rem;margin-bottom:3px}
+.ph b{color:var(--gold)}.ph em{font-style:normal;background:var(--red);color:#fff;border-radius:4px;padding:0 3px;font-size:.65rem}
+.ph .sc{margin-left:auto;font-variant-numeric:tabular-nums}
+.ph .rb{background:var(--gold);color:var(--felt3);border-radius:4px;padding:0 3px;font-size:.65rem;font-weight:bold}
+.ph.on{color:var(--gold)}.ph.on span:first-of-type::before{content:"▶"}
+.backs{display:flex;flex-wrap:wrap;gap:1px;margin-bottom:3px}.backs i{width:6px;height:9px;background:#2f7a5f;border-radius:1.5px;border-bottom:1px solid #0a2a23}
+.pond{display:grid;grid-template-columns:repeat(6,auto);justify-content:start;gap:1px;min-height:22px}
+.pond .pw{display:inline-block}.pond .tile{--w:min(19px,5vw);margin:0}
+.pond .pw.rot{transform:rotate(90deg);margin:0 3px}
+.me{background:rgba(255,247,232,.05);border:1px solid rgba(216,182,91,.3);border-radius:10px;padding:6px}
+.me .pond .tile{--w:24px}
+.ghand{margin-top:10px}.ghand .gap{width:8px}
+.gact{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.gmsg{font-size:.85rem;color:var(--muted);flex:1 1 100%}
+.gtoggle{font-size:.85rem;display:flex;gap:6px;align-items:center;margin:4px 0}
+.explain .qt td{white-space:normal}.explain .qt td small{font-size:.65rem}
+.explain .tile{--w:22px;margin:0 auto}
+.fair{font-size:.85rem;background:rgba(216,182,91,.12);border:1px solid rgba(216,182,91,.4);border-radius:10px;padding:8px}
+.rl{padding-left:1.2em;font-size:.9rem;line-height:1.7}
+.rank tr.mine td,.rank tr.mine th{background:rgba(216,182,91,.25)}
+#g-result .hand .tile{--w:min(24px,6vw)}
+.notice.ok{background:rgba(23,120,79,.3);border-color:#5fd39c}
+.indic .tile{--w:20px;margin:0}

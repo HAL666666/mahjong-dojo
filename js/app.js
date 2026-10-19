@@ -34,7 +34,7 @@
   function tiles(list, o) { return list.map(function (t) { return tile(t, o); }).join(''); }
 
   // ---------- 画面遷移（状態は各画面に保持） ----------
-  var TITLES = { home: '点数道場', lessons: '符の学習', quiz: '点数クイズ', lab: '点数研究室', flow: '牌の流れと確率', rules: 'ルールとマナー', settings: '設定' };
+  var TITLES = { home: '点数道場', lessons: '符の学習', quiz: '点数クイズ', lab: '点数研究室', flow: '牌の流れと確率', rules: 'ルールとマナー', settings: '設定', game: '対局（東風戦）' };
   var current = 'home';
   function route() {
     var v = (location.hash || '#home').slice(1);
@@ -44,6 +44,7 @@
     $('#title').textContent = TITLES[v];
     $('#back').hidden = v === 'home';
     if (v === 'home') renderHome();
+    if (window.GameUI) { if (v === 'game') window.GameUI.show(); else window.GameUI.hide(); }
     if (v === 'settings') renderSettingsView();
     if (v === 'rules' && !$('#rules-body').innerHTML) $('#rules-body').innerHTML = window.renderRules(tile, tiles);
     window.scrollTo(0, 0);
@@ -193,6 +194,7 @@
     { name: '七対子', tiles: ['1m','1m','9m','9m','3p','3p','7p','7p','2s','2s','5s','5s','1z','1z'], win: '1z', han: 2 }
   ];
   var lab = store.get('lab', null) || { tiles: PRESETS[0].tiles.map(E.parse), win: E.parse(PRESETS[0].win), method: 'tsumo', dealer: false, closed: true, seat: 1, round: 0, wait: '自動', han: 2, open: [], kans: [], preset: 0 };
+  ['autoYaku', 'riichiLv', 'lastTile', 'dora'].forEach(function (k, i) { if (lab[k] == null) lab[k] = i === 0 ? false : 0; });
   var labSel = null;
   function saveLab() { store.set('lab', lab); }
   function sortTiles() { lab.tiles.sort(function (a, b) { return a - b; }); }
@@ -229,14 +231,36 @@
       '<div class="srow"><span>自風</span>' + seg('seat', [[0, '東'], [1, '南'], [2, '西'], [3, '北']]) + '</div>' +
       '<div class="srow"><span>場風</span>' + seg('round', [[0, '東'], [1, '南'], [2, '西'], [3, '北']]) + '</div>' +
       '<div class="srow"><span>待ち</span>' + seg('wait', [['自動', '自動'], ['両面', '両面'], ['嵌張', '嵌張'], ['辺張', '辺張'], ['単騎', '単騎'], ['双碰', '双碰']]) + '</div>' +
-      '<div class="srow"><span>翻</span><div class="stepper"><button class="btn sm" data-han="-1">−</button><b>' + lab.han + '翻</b><button class="btn sm" data-han="1">＋</button></div><span class="fine" style="width:auto">役＋ドラの合計</span></div>' +
+      '<div class="srow"><span>役判定</span>' + seg('autoYaku', [[false, '手入力'], [true, '自動判定']]) + '</div>' +
+      (lab.autoYaku ? '<div class="srow"><span>立直</span>' + seg('riichiLv', [[0, 'なし'], [1, '立直'], [2, '立直一発']]) + '</div>' +
+        '<div class="srow"><span>海底河底</span>' + seg('lastTile', [[0, 'なし'], [1, '最後の牌']]) + '</div>' +
+        '<div class="srow"><span>ドラ</span><div class="stepper"><button class="btn sm" data-dora="-1">−</button><b>' + (lab.dora || 0) + '枚</b><button class="btn sm" data-dora="1">＋</button></div><span class="fine" style="width:auto">裏ドラ含む</span></div>'
+      : '<div class="srow"><span>翻</span><div class="stepper"><button class="btn sm" data-han="-1">−</button><b>' + lab.han + '翻</b><button class="btn sm" data-han="1">＋</button></div><span class="fine" style="width:auto">役＋ドラの合計</span></div>') +
       '<p class="fine">親を選ぶと自風は東になります。待ち「自動」は和了牌から判定（複数の解釈があれば符の高い方）。</p>';
   }
   function renderLabResult() {
     var r = $('#lab-result');
     var a = E.analyze(lab.tiles, { winTile: lab.win, method: lab.method, closed: lab.closed, seat: lab.seat, round: lab.round, openTriplets: lab.open, kans: lab.kans, waitOverride: lab.wait });
     if (!a.valid) { r.innerHTML = '<h2>計算結果</h2><p class="warn">' + a.reason + '</p>'; return; }
-    var o = a.best, h = '<h2>計算結果</h2>';
+    var o = a.best, h = '<h2>計算結果</h2>', han = lab.han, yk = null;
+    var notice = $('#lab-notice');
+    notice.textContent = lab.autoYaku ? (lab.closed ? '✓ 役を自動判定しています（門前の手のみ・ドラは枚数で入力）。' : '⚠ 鳴きありの役判定は未対応です。翻を手入力してください。') : '⚠ 役は自動判定しません（設定で「自動判定」にできます）。翻（役＋ドラ）は自分で設定してください。';
+    notice.classList.toggle('ok', !!(lab.autoYaku && lab.closed));
+    if (lab.autoYaku && lab.closed) {
+      var ry = window.Yaku.evaluate(lab.tiles, { winTile: lab.win, method: lab.method, seat: lab.seat, round: lab.round, dealer: lab.dealer,
+        riichi: lab.riichiLv > 0, ippatsu: lab.riichiLv === 2, haitei: !!lab.lastTile, houtei: !!lab.lastTile, doraIndicators: [] });
+      if (!ry || !ry.valid) { r.innerHTML = h + '<p class="warn">役がありません。ドラだけでは和了できません（立直をかける・役のある形にする）。</p>'; return; }
+      han = ry.yakuman ? 13 * ry.yakuman : ry.han + (lab.dora || 0);
+      yk = ry.yaku.map(function (y) { return [y.name, y.han]; });
+      if (!ry.yakuman && lab.dora) yk.push(['ドラ', lab.dora]);
+      h += '<h3>判定された役</h3><p class="gold">' + yk.map(function (y) { return y[0] + ' ' + (ry.yakuman ? '' : y[1] + '翻'); }).join('・') + '</p>';
+      if (ry.yakuman || ry.opt.kokushi) {
+        var pc = window.Yaku.payment(ry, { method: lab.method, dealer: lab.dealer });
+        r.innerHTML = h + '<div class="ribbon"><span class="r-han">' + pc.limit + '</span><span class="r-pt">' + (lab.method === 'ron' ? E.fmt(pc.ron) + '点' : lab.dealer ? E.fmt(pc.dealerPay) + '点オール' : E.fmt(pc.childPay) + '/' + E.fmt(pc.dealerPay) + '点') + '</span></div>';
+        return;
+      }
+      o = ry.opt;
+    }
     if (!o.chiitoi) {
       h += '<h3>面子の分け方（自動）</h3><div class="groups">' + o.groups.map(function (g) {
         var inner = '<div class="hand">' + tiles(g.tiles, { sm: true }) + '</div>';
@@ -249,13 +273,13 @@
       if (!lab.closed) h += '<p class="fine">鳴きありの場合、ポンした刻子を「ポンにする」で明刻にしてください（チーは順子なので符に影響しません）。</p>';
       if (o.groups.some(function (g) { return g.ronComplete; })) h += '<p class="fine">※ロン和了で完成した刻子は明刻として数えます。</p>';
     }
-    h += '<p>待ち：<b>' + o.waitName + '</b>' + (o.chiitoi ? '' : '（' + (o.waitFu ? '+2符' : '0符') + '）') + (o.pinfuShape ? '　<span class="gold">平和の形です（翻に平和1翻を含めてください）</span>' : '') + '</p>';
+    h += '<p>待ち：<b>' + o.waitName + '</b>' + (o.chiitoi ? '' : '（' + (o.waitFu ? '+2符' : '0符') + '）') + (o.pinfuShape && !yk ? '　<span class="gold">平和の形です（翻に平和1翻を含めてください）</span>' : '') + '</p>';
     var alts = a.options.filter(function (x) { return x !== o; });
-    if (alts.length) h += '<p class="alt">他の解釈：' + alts.slice(0, 3).map(function (x) { return x.waitName + ' ' + x.fu + '符'; }).join('、') + '（高い方を採用）</p>';
-    h += breakdownHTML(o, lab.han, lab.method, lab.dealer).replace(/<h3>面子の分け方<\/h3>[\s\S]*?<\/p>/, '');
+    if (alts.length && !yk) h += '<p class="alt">他の解釈：' + alts.slice(0, 3).map(function (x) { return x.waitName + ' ' + x.fu + '符'; }).join('、') + '（高い方を採用）</p>';
+    h += breakdownHTML(o, han, lab.method, lab.dealer, yk, 0).replace(/<h3>面子の分け方<\/h3>[\s\S]*?<\/p>/, '');
     h += '<h3>同じ翻・符の4パターン</h3><table class="qt"><tr><th></th><th>ロン</th><th>ツモ</th></tr>' +
-      '<tr><th>子</th><td>' + E.paymentText(lab.han, o.fu, 'ron', false) + '</td><td>' + E.paymentText(lab.han, o.fu, 'tsumo', false) + '</td></tr>' +
-      '<tr><th>親</th><td>' + E.paymentText(lab.han, o.fu, 'ron', true) + '</td><td>' + E.paymentText(lab.han, o.fu, 'tsumo', true) + '</td></tr></table>' +
+      '<tr><th>子</th><td>' + E.paymentText(han, o.fu, 'ron', false) + '</td><td>' + E.paymentText(han, o.fu, 'tsumo', false) + '</td></tr>' +
+      '<tr><th>親</th><td>' + E.paymentText(han, o.fu, 'ron', true) + '</td><td>' + E.paymentText(han, o.fu, 'tsumo', true) + '</td></tr></table>' +
       '<p class="fine">※符は和了り方で変わるため、表はいま計算した' + o.fu + '符のまま比較しています。</p>';
     r.innerHTML = h;
   }
@@ -280,6 +304,7 @@
   $('#lab-settings').onclick = function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.han) { lab.han = Math.max(1, Math.min(13, lab.han + +b.dataset.han)); renderLab(); return; }
+    if (b.dataset.dora) { lab.dora = Math.max(0, Math.min(20, (lab.dora || 0) + +b.dataset.dora)); renderLab(); return; }
     var s = b.closest('.seg'); if (!s) return;
     var k = s.dataset.key, v = b.dataset.v;
     lab[k] = v === 'true' ? true : v === 'false' ? false : /^\d$/.test(v) ? +v : v;
@@ -382,6 +407,7 @@
   $('#gear').onclick = function () { location.hash = '#settings'; };
 
   // ---------- 起動 ----------
+  window.DojoUI = { tile: tile, tiles: tiles, breakdownHTML: breakdownHTML, settings: settings };
   applySettings(); renderLesson(); renderQuiz(); renderLab(); route();
   if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
 })();

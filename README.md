@@ -4,6 +4,7 @@
 
 - 符の学習（10ステップ）／点数クイズ（13問・全問エンジンで検証）／点数研究室（14枚の牌姿を編集して符・点数を再計算）
 - どの画面からでも「早見表」「ヒント」を開ける
-- 役は自動判定しません（研究室では翻を手入力）
+- 対局（東風戦・お試し版、鳴きなし、CPU 3人）。牌山は各局 crypto.getRandomValues で一度だけシャッフル
+- 点数研究室は翻の手入力か「役を自動判定」（門前のみ）を選べる
 
-テスト: `node tests/engine.test.js`
+テスト: `node tests/engine.test.js && node tests/yaku.test.js && node tests/game.test.js`
