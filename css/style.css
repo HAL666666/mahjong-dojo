@@ -150,3 +150,33 @@ select{font:inherit;font-size:1rem;padding:8px;border-radius:8px;border:1px soli
 #g-result .hand .tile{--w:min(24px,6vw)}
 .notice.ok{background:rgba(23,120,79,.3);border-color:#5fd39c}
 .indic .tile{--w:20px;margin:0}
+/* v4：副露・鳴き・危険度 */
+.tile.red::before{content:"";position:absolute;top:2px;left:2px;width:18%;aspect-ratio:1;border-radius:50%;background:#d42a2a;box-shadow:0 0 0 1px #fff7e8;z-index:1}
+.melds{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;margin:3px 0}
+.meld{display:inline-flex;align-items:flex-end;gap:1px;background:rgba(0,0,0,.18);border-radius:4px;padding:1px 2px}
+.meld .tile{margin:0}
+.cpu .meld .tile{--w:min(15px,4vw)}
+.cpu .melds{justify-content:flex-start}
+.me ~ .melds .tile,.ghand + .melds .tile{--w:calc(var(--tw)*.85)}
+.rotw{display:inline-flex;flex-direction:column-reverse;align-items:center}
+.tile.rot{width:calc(var(--w)*1.36);height:var(--w);display:flex;align-items:center;justify-content:center}
+.tile.rot svg{width:var(--w);transform:rotate(-90deg);flex:none}
+.tile.rot.stack{margin-bottom:-1px}
+.tback{display:inline-block;width:var(--w,15px);aspect-ratio:3/4;background:#2f7a5f;border-radius:2px;border-bottom:2px solid #0a2a23}
+.cpu .tback{--w:min(15px,4vw);width:min(15px,4vw)}
+.ghand + .melds .tback{width:calc(var(--tw)*.85)}
+.pond .pw.called{opacity:.35}
+.lv{font-size:.65rem;color:var(--gold);margin-left:2px}
+.callbar{position:sticky;bottom:8px;z-index:5;margin:8px 0;padding:8px;border:2px solid var(--gold);border-radius:12px;background:rgba(10,42,35,.96);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.callbar .ctile .tile{--w:34px}
+.callbar .cbtns{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.callbar .btn.chi{display:inline-flex;align-items:center;gap:2px}
+.callbar .btn.chi .tile{--w:18px;margin:0}
+.callbar .hint{flex-basis:100%;margin:0}
+.tile.hl svg{outline:2px dashed var(--gold);border-radius:5px}
+.dg{display:inline-block;border-radius:99px;padding:1px 6px;font-size:.75rem;font-weight:bold}
+.dg.safe{background:#2e7d4f;color:#fff}.dg.mid{background:#c99a2e;color:#1b1b1b}.dg.bad{background:#b3261e;color:#fff}
+.explain td small{display:block}
+.winhand{flex-wrap:wrap;align-items:flex-end}
+.winhand .meld .tile{--w:min(22px,5.6vw)}
+.logo-reading{display:block;font-size:.8rem;letter-spacing:.3em;color:var(--muted);margin-top:2px}

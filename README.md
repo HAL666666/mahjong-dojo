@@ -1,10 +1,15 @@
-# 点数道場
+# 牌の理（はいのことわり）
 
-符の計算から麻雀（リーチ麻雀）の点数計算を学ぶ、日本語の PWA。ビルド不要の HTML/CSS/JS、アカウント・サーバーなし、オフライン動作。
+符と点数の計算から対局まで学べる、日本語の麻雀（リーチ麻雀）PWA。ビルド不要の HTML/CSS/JS、アカウント・サーバーなし、オフライン動作。旧名「点数道場」（URL とリポジトリ名 mahjong-dojo、保存データは互換のまま）。
 
-- 符の学習（10ステップ）／点数クイズ（13問・全問エンジンで検証）／点数研究室（14枚の牌姿を編集して符・点数を再計算）
+- 符の学習（10ステップ）／点数クイズ（13問・全問エンジンで検証）／点数研究室（牌姿を編集して符・点数を再計算。役の自動判定は副露（ポン・チー・明槓・暗槓）にも対応）
+- 対局：あなた＋CPU 3人。半荘戦／東風戦、ポン・チー・カン、赤ドラ、途中流局、ダブロン、包、ウマ・オカ表示。CPU は初級／中級／上級
+- 解説モード：打牌候補ごとの向聴数・受け入れ・危険度、鳴きの助言
+- 公平性：牌山は各局 crypto.getRandomValues の Fisher–Yates で一度だけシャッフル。CPU は自分の手牌と公開情報だけで判断
 - どの画面からでも「早見表」「ヒント」を開ける
-- 対局（東風戦・お試し版、鳴きなし、CPU 3人）。牌山は各局 crypto.getRandomValues で一度だけシャッフル
-- 点数研究室は翻の手入力か「役を自動判定」（門前のみ）を選べる
 
-テスト: `node tests/engine.test.js && node tests/yaku.test.js && node tests/game.test.js`
+テスト: `node tests/engine.test.js && node tests/yaku.test.js && node tests/game.test.js && node tests/v4.test.js`
+
+CPU の強さ比較: `node tools/sim.js 40 mixed`（または `node tools/pair.js hard easy 40`）
+
+スクリーンショット: `sh tools/shots.sh`（headless Chrome で screens/v4-*.png を撮り直す）

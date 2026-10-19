@@ -1,4 +1,4 @@
-/* 点数道場 — 採点エンジン（Godot版 score_engine.gd / hand_analyzer.gd からの移植）
+/* 牌の理 — 採点エンジン（Godot版 score_engine.gd / hand_analyzer.gd からの移植）
  * ブラウザでは window.Engine、Node では module.exports として使える。 */
 (function (root) {
   'use strict';

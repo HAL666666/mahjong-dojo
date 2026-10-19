@@ -1,4 +1,4 @@
-/* 点数道場 — UI */
+/* 牌の理 — UI */
 (function () {
   'use strict';
   var E = window.Engine, Q = window.QUESTIONS, L = window.LESSONS;
@@ -15,16 +15,22 @@
   var settings = store.get('settings', { style: 'B', size: 'std' });
   if (!STYLES[settings.style]) settings.style = 'B';
   var svgCache = {};
-  function tileSVG(code, style) {
-    var k = style + code;
-    return svgCache[k] || (svgCache[k] = STYLES[style].svg(code, { width: '100%' }));
+  // 赤ドラ：絵柄の色を赤に置き換える（自作SVGの色指定を差し替えるだけ）
+  var RED_FROM = /#(1b1b1b|1d4f9c|14704a|0b3d29|111|1557c0|0e7a4a|08442a)\b/gi;
+  function tileSVG(code, style, red) {
+    var k = style + code + (red ? 'r' : '');
+    if (svgCache[k]) return svgCache[k];
+    var svg = STYLES[style].svg(code, { width: '100%' });
+    if (red) svg = svg.replace(RED_FROM, style === 'A' ? '#c0262d' : '#d42a2a');
+    return (svgCache[k] = svg);
   }
+  // t：牌の種類（0..33）・'5m' 形式、または対局の牌ID（種類＋34×コピー番号）
   function tile(t, o) {
     o = o || {};
-    var i = E.parse(t), tag = o.button ? 'button' : 'span';
-    var cls = 'tile' + (o.sm ? ' sm' : '') + (o.win ? ' win' : '') + (o.sel ? ' sel' : '');
-    return '<' + tag + ' class="' + cls + '" data-t="' + i + '"' + (o.idx != null ? ' data-i="' + o.idx + '"' : '') +
-      (o.disabled ? ' disabled' : '') + ' aria-label="' + E.name(i) + '"' + (o.button ? ' type="button"' : '') + '>' + tileSVG(E.code(i), o.style || settings.style) +
+    var i = E.parse(t) % 34, tag = o.button ? 'button' : 'span';
+    var cls = 'tile' + (o.sm ? ' sm' : '') + (o.win ? ' win' : '') + (o.sel ? ' sel' : '') + (o.red ? ' red' : '') + (o.rot ? ' rot' : '') + (o.cls ? ' ' + o.cls : '');
+    return '<' + tag + ' class="' + cls + '" data-t="' + i + '"' + (o.id != null ? ' data-id="' + o.id + '"' : '') + (o.idx != null ? ' data-i="' + o.idx + '"' : '') +
+      (o.disabled ? ' disabled' : '') + ' aria-label="' + (o.red ? '赤' : '') + E.name(i) + '"' + (o.button ? ' type="button"' : '') + '>' + tileSVG(E.code(i), o.style || settings.style, o.red) +
       (o.cnt != null ? '<span class="cnt">' + o.cnt + '</span>' : '') + '</' + tag + '>';
   }
   function applySettings() {
@@ -34,7 +40,7 @@
   function tiles(list, o) { return list.map(function (t) { return tile(t, o); }).join(''); }
 
   // ---------- 画面遷移（状態は各画面に保持） ----------
-  var TITLES = { home: '点数道場', lessons: '符の学習', quiz: '点数クイズ', lab: '点数研究室', flow: '牌の流れと確率', rules: 'ルールとマナー', settings: '設定', game: '対局（東風戦）' };
+  var TITLES = { home: '牌の理', lessons: '符の学習', quiz: '点数クイズ', lab: '点数研究室', flow: '牌の流れと確率', rules: 'ルールとマナー', settings: '設定', game: '対局' };
   var current = 'home';
   function route() {
     var v = (location.hash || '#home').slice(1);
@@ -52,8 +58,18 @@
   $('#back').onclick = function () { location.hash = '#home'; };
   window.addEventListener('hashchange', route);
 
+  // 改名のお知らせ（旧「点数道場」の利用者に一度だけ表示。保存データのキー dojo.* はそのまま）
+  function renderRenameNotice() {
+    var box = $('#rename-notice'); if (!box) return;
+    if (store.get('renameNoticeSeen', false) || !window.__dojoHadData) { if (!window.__dojoHadData) store.set('renameNoticeSeen', true); box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="notice ok rename"><b>アプリ名が「牌の理（はいのことわり）」に変わりました。</b><br>旧名「点数道場」です。URL はそのままで、学習の記録・クイズの成績・設定などの保存データは引き継がれています。ホーム画面のアイコンもそのまま使えます（名前の表示は端末により次回起動時などに更新されます）。' +
+      '<div class="row gap" style="margin-top:6px"><button class="btn sm primary" id="rename-ok" type="button">OK</button></div></div>';
+    $('#rename-ok').onclick = function () { store.set('renameNoticeSeen', true); box.innerHTML = ''; };
+  }
   function renderHome() {
-    $('#logo').innerHTML = '<span class="logo-tile">点</span><span class="logo-tile gold">符</span><span class="logo-tile">道</span>';
+    $('#logo').innerHTML = '<span class="logo-tile">牌</span><span class="logo-tile gold">の</span><span class="logo-tile">理</span>';
+    if (!document.querySelector('.logo-reading')) $('#logo').insertAdjacentHTML('afterend', '<span class="logo-reading">はいのことわり</span>');
+    renderRenameNotice();
     var done = store.get('lessonsDone', []);
     $('#lesson-progress').textContent = done.length + '/' + L.length;
     var qs = store.get('quizStats', { correct: 0, answered: 0 });
@@ -227,7 +243,7 @@
     $('#lab-settings').innerHTML = '<h2>条件</h2>' +
       '<div class="srow"><span>和了</span>' + seg('method', [['ron', 'ロン'], ['tsumo', 'ツモ']]) + '</div>' +
       '<div class="srow"><span>親子</span>' + seg('dealer', [[false, '子'], [true, '親']]) + '</div>' +
-      '<div class="srow"><span>門前</span>' + seg('closed', [[true, '門前'], [false, '鳴きあり']]) + '</div>' +
+      (lab.autoYaku ? '' : '<div class="srow"><span>門前</span>' + seg('closed', [[true, '門前'], [false, '鳴きあり']]) + '</div>') +
       '<div class="srow"><span>自風</span>' + seg('seat', [[0, '東'], [1, '南'], [2, '西'], [3, '北']]) + '</div>' +
       '<div class="srow"><span>場風</span>' + seg('round', [[0, '東'], [1, '南'], [2, '西'], [3, '北']]) + '</div>' +
       '<div class="srow"><span>待ち</span>' + seg('wait', [['自動', '自動'], ['両面', '両面'], ['嵌張', '嵌張'], ['辺張', '辺張'], ['単騎', '単騎'], ['双碰', '双碰']]) + '</div>' +
@@ -244,33 +260,54 @@
     if (!a.valid) { r.innerHTML = '<h2>計算結果</h2><p class="warn">' + a.reason + '</p>'; return; }
     var o = a.best, h = '<h2>計算結果</h2>', han = lab.han, yk = null;
     var notice = $('#lab-notice');
-    notice.textContent = lab.autoYaku ? (lab.closed ? '✓ 役を自動判定しています（門前の手のみ・ドラは枚数で入力）。' : '⚠ 鳴きありの役判定は未対応です。翻を手入力してください。') : '⚠ 役は自動判定しません（設定で「自動判定」にできます）。翻（役＋ドラ）は自分で設定してください。';
-    notice.classList.toggle('ok', !!(lab.autoYaku && lab.closed));
-    if (lab.autoYaku && lab.closed) {
-      var ry = window.Yaku.evaluate(lab.tiles, { winTile: lab.win, method: lab.method, seat: lab.seat, round: lab.round, dealer: lab.dealer,
+    notice.textContent = lab.autoYaku ? '✓ 役を自動判定しています。鳴いた面子は下の「面子の指定」でポン・チー・明槓・暗槓にしてください（ドラは枚数で入力）。' : '⚠ 役は自動判定しません（設定で「自動判定」にできます）。翻（役＋ドラ）は自分で設定してください。';
+    notice.classList.toggle('ok', !!lab.autoYaku);
+    if (lab.autoYaku) {
+      // 面子の指定（鳴き）：門前で分解した面子ごとに ポン／チー／明槓／暗槓 を指定
+      var a0 = E.analyze(lab.tiles, { winTile: lab.win, method: lab.method, closed: true, seat: lab.seat, round: lab.round, openTriplets: [], kans: [], waitOverride: '自動' });
+      var g0 = a0.valid ? a0.best.groups : [], marks = lab.marks || (lab.marks = {}), seen = {}, meldsIn = [], rest = lab.tiles.slice();
+      var markRow = '';
+      g0.forEach(function (g) {
+        var base = (g.type === 'sequence' ? 's' : 't') + g.tile; seen[base] = (seen[base] || 0) + 1;
+        var key = base + '#' + seen[base], m = marks[key] || '';
+        var label = { '': g.type === 'sequence' ? '門前' : '暗刻', pon: 'ポン', chi: 'チー', minkan: '明槓', ankan: '暗槓' }[m];
+        markRow += '<div class="group"><div class="hand">' + tiles(g.tiles, { sm: true }) + '</div><button class="btn sm' + (m ? ' primary' : '') + '" data-mark="' + key + '" data-mt="' + g.type + '">' + label + '</button></div>';
+        if (m) {
+          g.tiles.forEach(function (t) { var i = rest.indexOf(t); if (i >= 0) rest.splice(i, 1); });
+          meldsIn.push({ type: m, tiles: m === 'minkan' || m === 'ankan' ? [g.tile, g.tile, g.tile, g.tile] : g.tiles });
+        }
+      });
+      h += '<h3>面子の指定（鳴き）</h3><div class="groups">' + markRow + '</div><p class="fine">ボタンを押すたびに切り替わります。刻子：暗刻→ポン→明槓→暗槓、順子：門前→チー。槓子は4枚目を自動で足して計算します。和了牌を含む面子は鳴いた面子にできません。</p>';
+      if (meldsIn.length && rest.indexOf(lab.win) < 0) { r.innerHTML = h + '<p class="warn">和了牌が鳴いた面子の中にあります。和了牌を含まない面子を指定してください。</p>'; return; }
+      var ry = window.Yaku.evaluate(meldsIn.length ? { closed: rest, melds: meldsIn } : lab.tiles, { winTile: lab.win, method: lab.method, seat: lab.seat, round: lab.round, dealer: lab.dealer,
         riichi: lab.riichiLv > 0, ippatsu: lab.riichiLv === 2, haitei: !!lab.lastTile, houtei: !!lab.lastTile, doraIndicators: [] });
-      if (!ry || !ry.valid) { r.innerHTML = h + '<p class="warn">役がありません。ドラだけでは和了できません（立直をかける・役のある形にする）。</p>'; return; }
+      if (!ry || !ry.valid) { r.innerHTML = h + '<p class="warn">役がありません。ドラだけでは和了できません（' + (meldsIn.some(function (m) { return m.type !== 'ankan'; }) ? '鳴いた手は立直・平和・門前ツモが付きません' : '立直をかける・役のある形にする') + '）。</p>'; return; }
+      if (meldsIn.some(function (m) { return m.type !== 'ankan'; }) && lab.riichiLv) h += '<p class="fine">※鳴いた手は立直できないため、立直・一発は数えません。</p>';
       han = ry.yakuman ? 13 * ry.yakuman : ry.han + (lab.dora || 0);
       yk = ry.yaku.map(function (y) { return [y.name, y.han]; });
       if (!ry.yakuman && lab.dora) yk.push(['ドラ', lab.dora]);
       h += '<h3>判定された役</h3><p class="gold">' + yk.map(function (y) { return y[0] + ' ' + (ry.yakuman ? '' : y[1] + '翻'); }).join('・') + '</p>';
+      var kuisagari = ry.yaku.filter(function (y) { return !ry.menzen && ['混全帯幺九', '純全帯幺九', '一気通貫', '三色同順', '混一色', '清一色'].indexOf(y.name) >= 0; });
+      if (kuisagari.length) h += '<p class="fine">喰い下がり：' + kuisagari.map(function (y) { return y.name; }).join('・') + ' は鳴くと1翻下がります。</p>';
       if (ry.yakuman || ry.opt.kokushi) {
         var pc = window.Yaku.payment(ry, { method: lab.method, dealer: lab.dealer });
         r.innerHTML = h + '<div class="ribbon"><span class="r-han">' + pc.limit + '</span><span class="r-pt">' + (lab.method === 'ron' ? E.fmt(pc.ron) + '点' : lab.dealer ? E.fmt(pc.dealerPay) + '点オール' : E.fmt(pc.childPay) + '/' + E.fmt(pc.dealerPay) + '点') + '</span></div>';
         return;
       }
       o = ry.opt;
+      a = { options: [o], best: o, valid: true };
     }
     if (!o.chiitoi) {
       h += '<h3>面子の分け方（自動）</h3><div class="groups">' + o.groups.map(function (g) {
         var inner = '<div class="hand">' + tiles(g.tiles, { sm: true }) + '</div>';
-        if (g.type === 'sequence') return '<div class="group">' + inner + '<span class="gl">順子 0符</span></div>';
+        if (g.type === 'sequence') return '<div class="group">' + inner + '<span class="gl">' + (g.meld === 'chi' ? 'チー ' : '') + '順子 0符</span></div>';
         var isOpen = lab.open.indexOf(g.tile) >= 0, isKan = lab.kans.indexOf(g.tile) >= 0;
+        if (yk) return '<div class="group">' + inner + '<span class="gl">' + (g.open ? '明' : '暗') + (g.kan ? '槓' : '刻') + ' ' + g.fu + '符</span></div>';
         return '<div class="group">' + inner + '<span class="gl">' + (g.open ? '明' : '暗') + (g.kan ? '槓' : '刻') + ' ' + g.fu + '符</span><div class="row gap">' +
           (lab.closed ? '' : '<button class="btn sm" data-open="' + g.tile + '">' + (isOpen ? 'ポン済→暗' : 'ポンにする') + '</button>') +
           '<button class="btn sm" data-kan="' + g.tile + '">' + (isKan ? '槓→刻' : '槓子にする') + '</button></div></div>';
       }).join('') + '<div class="group"><div class="hand">' + tiles([o.pair, o.pair], { sm: true }) + '</div><span class="gl">雀頭</span></div></div>';
-      if (!lab.closed) h += '<p class="fine">鳴きありの場合、ポンした刻子を「ポンにする」で明刻にしてください（チーは順子なので符に影響しません）。</p>';
+      if (!lab.closed && !yk) h += '<p class="fine">鳴きありの場合、ポンした刻子を「ポンにする」で明刻にしてください（チーは順子なので符に影響しません）。</p>';
       if (o.groups.some(function (g) { return g.ronComplete; })) h += '<p class="fine">※ロン和了で完成した刻子は明刻として数えます。</p>';
     }
     h += '<p>待ち：<b>' + o.waitName + '</b>' + (o.chiitoi ? '' : '（' + (o.waitFu ? '+2符' : '0符') + '）') + (o.pinfuShape && !yk ? '　<span class="gold">平和の形です（翻に平和1翻を含めてください）</span>' : '') + '</p>';
@@ -296,9 +333,9 @@
     var t = +b.dataset.t; if (lab.tiles.length >= 14 || counts()[t] >= 4) return;
     lab.tiles.push(t); if (lab.win == null) lab.win = t; labSel = null; renderLab();
   };
-  $('#lab-clear').onclick = function () { lab.tiles = []; lab.win = null; lab.open = []; lab.kans = []; labSel = null; renderLab(); };
+  $('#lab-clear').onclick = function () { lab.marks = {}; lab.tiles = []; lab.win = null; lab.open = []; lab.kans = []; labSel = null; renderLab(); };
   $('#lab-preset').onclick = function () {
-    lab.preset = ((lab.preset || 0) + 1) % PRESETS.length; var p = PRESETS[lab.preset];
+    lab.marks = {}; lab.preset = ((lab.preset || 0) + 1) % PRESETS.length; var p = PRESETS[lab.preset];
     lab.tiles = p.tiles.map(E.parse); lab.win = E.parse(p.win); lab.han = p.han; lab.open = []; lab.kans = []; labSel = null; renderLab();
   };
   $('#lab-settings').onclick = function (e) {
@@ -319,6 +356,13 @@
     function toggle(arr, t) { var i = arr.indexOf(t); if (i >= 0) arr.splice(i, 1); else arr.push(t); }
     if (b.dataset.open) toggle(lab.open, +b.dataset.open);
     if (b.dataset.kan) toggle(lab.kans, +b.dataset.kan);
+    if (b.dataset.mark) {
+      var cyc = b.dataset.mt === 'sequence' ? ['', 'chi'] : ['', 'pon', 'minkan', 'ankan'];
+      lab.marks = lab.marks || {};
+      var cur = lab.marks[b.dataset.mark] || '';
+      lab.marks[b.dataset.mark] = cyc[(cyc.indexOf(cur) + 1) % cyc.length];
+      if (!lab.marks[b.dataset.mark]) delete lab.marks[b.dataset.mark];
+    }
     renderLab();
   };
 
@@ -390,10 +434,21 @@
     });
     h += '</div><h2>牌の大きさ</h2><div class="seg" id="size-seg"><button data-size="std" class="' + (settings.size === 'std' ? 'on' : '') + '">標準</button><button data-size="lg" class="' + (settings.size === 'lg' ? 'on' : '') + '">大きめ</button></div>' +
       '<p class="fine">大きめにすると14枚の手牌は2段に折り返します。Aクラシックを選ぶと自動で「大きめ」になります（あとから変更できます）。</p>' +
-      '<h2>プレビュー（手牌14枚）</h2><div class="hand">' + tiles(PREVIEW_HAND) + '</div>';
+      '<h2>プレビュー（手牌14枚）</h2><div class="hand">' + tiles(PREVIEW_HAND) + '</div>' +
+      '<p class="fine">赤ドラ（赤い5）：</p><div class="hand">' + ['5m', '5p', '5s'].map(function (t) { return tile(t, { red: true }); }).join('') + '</div>';
+    var go = window.GameUI ? window.GameUI.opts : null;
+    if (go) {
+      var gseg = function (k, list) { return '<div class="seg">' + list.map(function (o) { return '<button data-gopt="' + k + '" data-v="' + o[0] + '" class="' + (String(go[k]) === String(o[0]) ? 'on' : '') + '">' + o[1] + '</button>'; }).join('') + '</div>'; };
+      h += '<h2>対局</h2><h3>CPUの強さ</h3>' + gseg('cpuLevel', [['easy', '初級'], ['normal', '中級'], ['hard', '上級']]) +
+        '<p class="fine">初級：鳴かずに素直に手を進め、リーチには安全牌を探す程度。中級：役牌や速い手で鳴き、リーチには降りる。上級：手の価値と危険度で押し引きし、ダマ・リーチを選び、終盤の危険牌を避けます。どの強さもあなたの手牌や山は見ません。次の対局から反映されます。</p>' +
+        '<h3>鳴きの確認を出す</h3>' + gseg('callConfirm', [[true, 'オン'], [false, 'オフ']]) +
+        '<p class="fine">オフにすると、ポン・チー・カンの確認を出さずに自動でスルーします（ロンの確認は常に出ます）。</p>';
+    }
     $('#settings-body').innerHTML = h;
   }
   $('#settings-body').onclick = function (e) {
+    var g = e.target.closest('[data-gopt]');
+    if (g && window.GameUI) { var gv = g.dataset.v; window.GameUI.opts[g.dataset.gopt] = gv === 'true' ? true : gv === 'false' ? false : gv; window.GameUI.saveOpts(); renderSettingsView(); return; }
     var b = e.target.closest('[data-style],[data-size]'); if (!b) return;
     if (b.dataset.style) { settings.style = b.dataset.style; if (settings.style === 'A') settings.size = 'lg'; }
     if (b.dataset.size) settings.size = b.dataset.size;

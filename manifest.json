@@ -1,7 +1,7 @@
 {
-  "name": "点数道場",
-  "short_name": "点数道場",
-  "description": "符の計算から学ぶ麻雀の点数計算道場",
+  "name": "牌の理（はいのことわり）",
+  "short_name": "牌の理",
+  "description": "符と点数の計算から対局まで学べる麻雀アプリ",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
