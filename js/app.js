@@ -9,28 +9,32 @@
   };
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  // ---------- 牌の描画 ----------
-  var KANJI = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
-  function tileInner(i) {
-    if (i < 9) return { cls: 'm', html: '<b>' + KANJI[i] + '</b><i>萬</i>' };
-    if (i < 18) return { cls: 'p', html: '<b>' + (i - 8) + '</b><i>筒</i>' };
-    if (i < 27) return { cls: 's', html: '<b>' + (i - 17) + '</b><i>索</i>' };
-    var h = ['東', '南', '西', '北', '', '發', '中'][i - 27];
-    var extra = i === 31 ? ' haku' : i === 32 ? ' hatsu' : i === 33 ? ' chun' : '';
-    return { cls: 'z' + extra, html: '<b>' + h + '</b>' };
+  // ---------- 牌の描画（SVG：js/tiles/tiles-A/B/C.js） ----------
+  var STYLES = { A: window.TilesA, B: window.TilesB, C: window.TilesC };
+  var STYLE_NAMES = { A: 'A クラシック', B: 'B フラット', C: 'C 数字つき' };
+  var settings = store.get('settings', { style: 'B', size: 'std' });
+  if (!STYLES[settings.style]) settings.style = 'B';
+  var svgCache = {};
+  function tileSVG(code, style) {
+    var k = style + code;
+    return svgCache[k] || (svgCache[k] = STYLES[style].svg(code, { width: '100%' }));
   }
   function tile(t, o) {
     o = o || {};
-    var i = E.parse(t), d = tileInner(i), tag = o.button ? 'button' : 'span';
-    var cls = 'tile ' + d.cls + (o.sm ? ' sm' : '') + (o.win ? ' win' : '') + (o.sel ? ' sel' : '');
+    var i = E.parse(t), tag = o.button ? 'button' : 'span';
+    var cls = 'tile' + (o.sm ? ' sm' : '') + (o.win ? ' win' : '') + (o.sel ? ' sel' : '');
     return '<' + tag + ' class="' + cls + '" data-t="' + i + '"' + (o.idx != null ? ' data-i="' + o.idx + '"' : '') +
-      (o.disabled ? ' disabled' : '') + ' aria-label="' + E.name(i) + '"' + (o.button ? ' type="button"' : '') + '>' + d.html +
+      (o.disabled ? ' disabled' : '') + ' aria-label="' + E.name(i) + '"' + (o.button ? ' type="button"' : '') + '>' + tileSVG(E.code(i), o.style || settings.style) +
       (o.cnt != null ? '<span class="cnt">' + o.cnt + '</span>' : '') + '</' + tag + '>';
+  }
+  function applySettings() {
+    document.body.classList.toggle('size-lg', settings.size === 'lg');
+    store.set('settings', settings);
   }
   function tiles(list, o) { return list.map(function (t) { return tile(t, o); }).join(''); }
 
   // ---------- 画面遷移（状態は各画面に保持） ----------
-  var TITLES = { home: '点数道場', lessons: '符の学習', quiz: '点数クイズ', lab: '点数研究室', flow: '牌の流れと確率' };
+  var TITLES = { home: '点数道場', lessons: '符の学習', quiz: '点数クイズ', lab: '点数研究室', flow: '牌の流れと確率', rules: 'ルールとマナー', settings: '設定' };
   var current = 'home';
   function route() {
     var v = (location.hash || '#home').slice(1);
@@ -40,13 +44,15 @@
     $('#title').textContent = TITLES[v];
     $('#back').hidden = v === 'home';
     if (v === 'home') renderHome();
+    if (v === 'settings') renderSettingsView();
+    if (v === 'rules' && !$('#rules-body').innerHTML) $('#rules-body').innerHTML = window.renderRules(tile, tiles);
     window.scrollTo(0, 0);
   }
   $('#back').onclick = function () { location.hash = '#home'; };
   window.addEventListener('hashchange', route);
 
   function renderHome() {
-    $('#logo').innerHTML = '<span class="tile m"><b>点</b></span><span class="tile" style="color:#b48a1e"><b>符</b></span><span class="tile s"><b>道</b></span>';
+    $('#logo').innerHTML = '<span class="logo-tile">点</span><span class="logo-tile gold">符</span><span class="logo-tile">道</span>';
     var done = store.get('lessonsDone', []);
     $('#lesson-progress').textContent = done.length + '/' + L.length;
     var qs = store.get('quizStats', { correct: 0, answered: 0 });
@@ -347,7 +353,35 @@
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') document.querySelectorAll('.modal').forEach(function (m) { m.hidden = true; }); });
 
+  // ---------- 設定 ----------
+  var PREVIEW = ['1p', '5p', '9p', '1s', '5s', '9s', '5m', '7z'];
+  var PREVIEW_HAND = ['2m', '3m', '4m', '5p', '6p', '7p', '7s', '8s', '9s', '1z', '1z', '1z', '9p', '9p'];
+  function renderSettingsView() {
+    var h = '<h2>牌の絵柄</h2><div class="style-opts">';
+    ['A', 'B', 'C'].forEach(function (k) {
+      h += '<button class="style-opt' + (settings.style === k ? ' on' : '') + '" data-style="' + k + '"><b>' + STYLE_NAMES[k] + '</b>' +
+        '<small>' + { A: '本物に近い伝統的な絵柄（大きめ表示推奨）', B: '太く単純な図形で見やすい（標準）', C: '大きな数字＋記号。初心者向け・小さくても読める' }[k] + '</small>' +
+        '<span class="hand prev">' + PREVIEW.map(function (t) { return tile(t, { style: k }); }).join('') + '</span></button>';
+    });
+    h += '</div><h2>牌の大きさ</h2><div class="seg" id="size-seg"><button data-size="std" class="' + (settings.size === 'std' ? 'on' : '') + '">標準</button><button data-size="lg" class="' + (settings.size === 'lg' ? 'on' : '') + '">大きめ</button></div>' +
+      '<p class="fine">大きめにすると14枚の手牌は2段に折り返します。Aクラシックを選ぶと自動で「大きめ」になります（あとから変更できます）。</p>' +
+      '<h2>プレビュー（手牌14枚）</h2><div class="hand">' + tiles(PREVIEW_HAND) + '</div>';
+    $('#settings-body').innerHTML = h;
+  }
+  $('#settings-body').onclick = function (e) {
+    var b = e.target.closest('[data-style],[data-size]'); if (!b) return;
+    if (b.dataset.style) { settings.style = b.dataset.style; if (settings.style === 'A') settings.size = 'lg'; }
+    if (b.dataset.size) settings.size = b.dataset.size;
+    applySettings(); renderSettingsView(); renderLesson(); renderQuiz(); renderLab();
+    $('#rules-body').innerHTML = '';
+  };
+  $('#rules-body').onclick = function (e) {
+    var a = e.target.closest('[data-jump]'); if (!a) return;
+    e.preventDefault(); var t = document.querySelector(a.getAttribute('href')); if (t) t.scrollIntoView({ behavior: 'smooth' });
+  };
+  $('#gear').onclick = function () { location.hash = '#settings'; };
+
   // ---------- 起動 ----------
-  renderLesson(); renderQuiz(); renderLab(); route();
+  applySettings(); renderLesson(); renderQuiz(); renderLab(); route();
   if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
 })();

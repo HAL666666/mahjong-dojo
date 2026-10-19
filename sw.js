@@ -1,6 +1,6 @@
 /* 点数道場 service worker — アプリ本体をキャッシュしてオフライン動作 */
-const CACHE = 'tensu-dojo-v1';
-const SHELL = ['./', './index.html', './css/style.css', './js/engine.js', './js/questions.js', './js/lessons.js', './js/app.js',
+const CACHE = 'tensu-dojo-v2';
+const SHELL = ['./', './index.html', './css/style.css', './js/tiles/tiles-common.js', './js/tiles/tiles-A.js', './js/tiles/tiles-B.js', './js/tiles/tiles-C.js', './js/rules.js', './js/engine.js', './js/questions.js', './js/lessons.js', './js/app.js',
   './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {

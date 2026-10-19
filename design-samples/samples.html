@@ -1,0 +1,30 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;background:#0D342D;color:#fff7e8;font-family:'Noto Sans CJK JP',sans-serif;padding:14px}
+h1{font-size:18px;color:#d8b65b;margin:4px 0 10px}h2{font-size:13px;color:#b9cdbf;margin:10px 0 4px;font-weight:normal}
+.row{display:flex;flex-wrap:wrap;gap:4px}.row svg{display:block}
+.cmp td{padding:4px 6px;vertical-align:middle}.cmp th{color:#d8b65b;font-size:13px;text-align:left;padding-right:8px;white-space:nowrap}</style>
+<script src="tiles-common.js"></script><script src="tiles-A.js"></script><script src="tiles-B.js"></script><script src="tiles-C.js"></script></head>
+<body><div id="out"></div><script>
+var q = new URLSearchParams(location.search), mode = q.get('s'), out = document.getElementById('out');
+var ST = { A: TilesA, B: TilesB, C: TilesC };
+var DESC = { A: 'クラシック（本物の牌に近い伝統的な見た目）', B: 'フラット（太い図形・高コントラスト）', C: 'ミニマル＋数字（大きな数字＋スート記号・初心者向け）' };
+if (mode && ST[mode]) {
+  var S = ST[mode], h = '<h1>スタイル' + mode + '：' + DESC[mode] + '</h1>';
+  [['筒子（ピンズ）', 'p'], ['索子（ソーズ）', 's'], ['萬子（マンズ）', 'm']].forEach(function (g) {
+    h += '<h2>' + g[0] + '</h2><div class="row">';
+    for (var n = 1; n <= 9; n++) h += S.svg(n + g[1], { width: 56 });
+    h += '</div>';
+  });
+  h += '<h2>字牌（東南西北白發中）</h2><div class="row">';
+  for (var n = 1; n <= 7; n++) h += S.svg(n + 'z', { width: 56 });
+  out.innerHTML = h + '</div>';
+} else {
+  var tiles = ['1p', '5p', '9p', '1s', '5s', '9s', '5m', '7z'];
+  var h = '<h1>比較（スマホ実寸）</h1><p style="font-size:12px;color:#b9cdbf;margin:0 0 6px">各スタイル：上段 牌幅24px（いまのアプリの手牌サイズ）／下段 36px。1p 5p 9p 1s 5s 9s 5m 中</p>';
+  ['A', 'B', 'C'].forEach(function (k) {
+    h += '<h2 style="color:#d8b65b">' + ST[k].name + '</h2><div class="row">' + tiles.map(function (t) { return ST[k].svg(t, { width: 24 }); }).join('') +
+      '</div><div class="row" style="margin-top:6px">' + tiles.map(function (t) { return ST[k].svg(t, { width: 36 }); }).join('') + '</div>';
+  });
+  out.innerHTML = h;
+}
+</script></body></html>

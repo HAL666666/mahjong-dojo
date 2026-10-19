@@ -19,6 +19,7 @@
 <header class="bar">
   <button id="back" class="icon-btn" aria-label="ホームへ戻る" hidden>‹ ホーム</button>
   <h1 id="title">点数道場</h1>
+  <button id="gear" class="icon-btn gear" aria-label="設定">⚙</button>
 </header>
 <main>
   <section id="v-home" class="view">
@@ -27,7 +28,9 @@
       <a href="#lessons" class="mode"><span class="mi">符</span><span><b>符の学習</b><small>副底20から一歩ずつ</small></span><em id="lesson-progress"></em></a>
       <a href="#quiz" class="mode"><span class="mi">点</span><span><b>点数クイズ</b><small>翻・符・点数を当てる</small></span><em id="quiz-progress"></em></a>
       <a href="#lab" class="mode"><span class="mi">研</span><span><b>点数研究室</b><small>牌を入れ替えて再計算</small></span></a>
+      <a href="#rules" class="mode"><span class="mi">礼</span><span><b>ルールとマナー</b><small>席決め・配牌の取り方・手積み・作法</small></span></a>
       <div class="mode disabled"><span class="mi">流</span><span><b>牌の流れと確率</b><small>受け入れ枚数・確率の理論</small></span><em class="soon">準備中</em></div>
+      <a href="#settings" class="mode slim"><span class="mi">⚙</span><span><b>設定</b><small>牌の絵柄・大きさ</small></span></a>
     </nav>
     <p class="fine">右下の「早見表」「ヒント」はどの画面からでも開けます。オフラインでも動きます。</p>
   </section>
@@ -72,6 +75,9 @@
     <article class="card result" id="lab-result"></article>
   </section>
 
+  <section id="v-rules" class="view" hidden><div id="rules-body"></div></section>
+  <section id="v-settings" class="view" hidden><article class="card" id="settings-body"></article></section>
+
   <section id="v-flow" class="view" hidden>
     <article class="card"><h2>牌の流れと確率（準備中）</h2><p>固定の教材牌譜を一手ずつ進め、受け入れ枚数と「見えている牌」から確率の目安を計算するモードを次の版で追加します。</p><p class="fine">相手の伏せ牌は見えないため、表示する確率は可視情報に基づく目安です。</p></article>
   </section>
@@ -96,9 +102,14 @@
   </div>
 </div>
 
+<script src="js/tiles/tiles-common.js"></script>
+<script src="js/tiles/tiles-A.js"></script>
+<script src="js/tiles/tiles-B.js"></script>
+<script src="js/tiles/tiles-C.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/questions.js"></script>
 <script src="js/lessons.js"></script>
+<script src="js/rules.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
