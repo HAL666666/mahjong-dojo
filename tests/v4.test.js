@@ -339,7 +339,7 @@ const sim = require('../tools/sim.js');
   ok('publicView に他家の手牌・牌山・裏ドラが含まれない', !['hands', 'live', 'dead', 'rinshanPile', 'doraPile', 'uraIndicators', 'wall'].some(k => keys.includes(k)), keys);
   ok('publicView の手牌は自分の手牌だけ', JSON.stringify(v3.hand) === JSON.stringify(s3.hands[1]));
   const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-  ok('SW キャッシュは v4', /const CACHE = 'tensu-dojo-v4'/.test(sw));
+  ok('SW キャッシュは v5（v4＋引っ越しバックアップ）', /const CACHE = 'tensu-dojo-v5'/.test(sw));
   ok('SW が cpu.js をキャッシュする', sw.includes("'./js/cpu.js'"));
   const mf = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
   ok('manifest の名前は牌の理', mf.name.startsWith('牌の理') && mf.short_name === '牌の理', mf);

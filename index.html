@@ -79,7 +79,15 @@
 
  <section id="v-game" class="view" hidden><div id="game-body"></div></section>
   <section id="v-rules" class="view" hidden><div id="rules-body"></div></section>
-  <section id="v-settings" class="view" hidden><article class="card" id="settings-body"></article></section>
+  <section id="v-settings" class="view" hidden><article class="card" id="settings-body"></article>
+    <article class="card" id="backup-card"><h2>引っ越し（機種変更）</h2>
+      <p class="fine">問題・レッスンの成績と進み具合、研究室、対局の途中経過と成績、設定を1つのファイルにまとめます。iPhone では共有メニューから「"ファイル"に保存」か Google ドライブへ。</p>
+      <button class="btn primary wide" id="bk-export">📤 データを書き出す</button>
+      <label class="btn wide" style="display:block;text-align:center;box-sizing:border-box">📥 データを読み込む<input type="file" id="bk-import" accept="application/json,.json" hidden></label>
+      <p><label><input type="radio" name="bk-mode" value="replace" checked> 置き換え（おすすめ）</label>　<label><input type="radio" name="bk-mode" value="merge"> 統合（今のデータも残す）</label></p>
+      <div id="bk-status"></div>
+      <p class="fine">読み込む前に中身を確認します。壊れたファイルや他のアプリのファイルは読み込みません。</p>
+    </article></section>
 
   <section id="v-flow" class="view" hidden>
     <article class="card"><h2>牌の流れと確率（準備中）</h2><p>固定の教材牌譜を一手ずつ進め、受け入れ枚数と「見えている牌」から確率の目安を計算するモードを次の版で追加します。</p><p class="fine">相手の伏せ牌は見えないため、表示する確率は可視情報に基づく目安です。</p></article>
@@ -119,6 +127,7 @@ try { window.__dojoHadData = Object.keys(localStorage).some(function (k) { retur
 <script src="js/game-core.js"></script>
 <script src="js/game-ui.js"></script>
 <script src="js/rules.js"></script>
+<script src="js/backup.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

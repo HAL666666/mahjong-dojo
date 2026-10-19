@@ -8,7 +8,9 @@
 - 公平性：牌山は各局 crypto.getRandomValues の Fisher–Yates で一度だけシャッフル。CPU は自分の手牌と公開情報だけで判断
 - どの画面からでも「早見表」「ヒント」を開ける
 
-テスト: `node tests/engine.test.js && node tests/yaku.test.js && node tests/game.test.js && node tests/v4.test.js`
+テスト: `node tests/engine.test.js && node tests/yaku.test.js && node tests/game.test.js && node tests/v4.test.js && node tests/backup.test.js`（ブラウザ: `python3 tests/e2e_backup.py`）
+
+引っ越し（機種変更）: 設定 →「引っ越し」の **データを書き出す** で `dojo.` で始まる保存データ（成績・進み具合・研究室・対局・設定）を `hai-no-ri-all-v1-YYYY-MM-DD.json` に（iPhone は共有シート）。**データを読み込む** はアプリ名・版を確認→確認ダイアログ→置き換え（既定）／統合。失敗したら元に戻します。
 
 CPU の強さ比較: `node tools/sim.js 40 mixed`（または `node tools/pair.js hard easy 40`）
 

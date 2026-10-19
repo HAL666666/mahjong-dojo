@@ -1,6 +1,6 @@
 /* 牌の理 service worker — アプリ本体をキャッシュしてオフライン動作 */
-const CACHE = 'tensu-dojo-v4';
-const SHELL = ['./', './index.html', './css/style.css', './js/tiles/tiles-common.js', './js/tiles/tiles-A.js', './js/tiles/tiles-B.js', './js/tiles/tiles-C.js', './js/yaku.js', './js/cpu.js', './js/game-core.js', './js/game-ui.js', './js/rules.js', './js/engine.js', './js/questions.js', './js/lessons.js', './js/app.js',
+const CACHE = 'tensu-dojo-v5';
+const SHELL = ['./', './index.html', './css/style.css', './js/tiles/tiles-common.js', './js/tiles/tiles-A.js', './js/tiles/tiles-B.js', './js/tiles/tiles-C.js', './js/yaku.js', './js/cpu.js', './js/game-core.js', './js/game-ui.js', './js/rules.js', './js/engine.js', './js/questions.js', './js/lessons.js', './js/backup.js', './js/app.js',
   './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
